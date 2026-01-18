@@ -1,6 +1,5 @@
 use std::ffi::{CStr, c_str};
 
-
 use super::{IMAGE_DOS_HEADER, IMAGE_NT_HEADERS64, IMAGE_IMPORT_DESCRIPTOR, IMAGE_EXPORT_DIRECTORY};
 
 pub fn find_export(base: usize, target_name: String) -> Option<usize> {

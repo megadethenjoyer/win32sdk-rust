@@ -7,7 +7,16 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 use std::{arch::asm, mem::offset_of};
 
+use crate::windows::vm::{NtAllocateVirtualMemory, NtFreeVirtualMemory};
+
 pub mod pe;
+pub mod vm;
+
+static mut nt_alloc_vm: Option<self::vm::NtAllocateVirtualMemory> = None;
+static mut nt_free_vm: Option<self::vm::NtFreeVirtualMemory> = None;
+
+pub const H_CURR_PROC: usize = 0xFFFFFFFFFFFFFFFFusize;
+pub const STATUS_SUCCESS: u32 = 0u32;
 
 pub fn get_peb() -> *const PEB {
     unsafe {
@@ -88,4 +97,13 @@ pub fn find_module(target_name: &String) -> Option<Module> {
     }
 
     return None;
+}
+
+pub fn init() {
+    let ntdll = find_module(&String::from("ntdll.dll")).unwrap();
+    unsafe {
+        nt_alloc_vm = Some(std::mem::transmute(pe::find_export(ntdll.base, String::from("NtAllocateVirtualMemory")).unwrap()));
+        nt_free_vm = Some(std::mem::transmute(pe::find_export(ntdll.base, String::from("NtFreeVirtualMemory")).unwrap()));
+    }
+
 }
