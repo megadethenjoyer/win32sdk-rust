@@ -5,6 +5,8 @@
 #define _In_opt_
 #define _Inout_
 
+typedef uint32_t NTSTATUS;
+
 typedef void VOID;
 
 typedef char CHAR;
@@ -14,13 +16,14 @@ typedef int16_t SHORT;
 typedef uint16_t USHORT;
 
 typedef int32_t LONG;
-typedef uint64_t ULONG;
+typedef uint32_t ULONG;
 
 typedef int64_t LONGLONG;
 typedef uint64_t ULONGLONG;
 typedef uintptr_t UINT_PTR;
 typedef uintptr_t ULONG_PTR;
 typedef size_t SIZE_T;
+typedef SIZE_T *PSIZE_T;
 
 typedef USHORT WORD;
 
@@ -60,6 +63,8 @@ typedef ULONG_PTR  KAFFINITY;
 
 typedef char *PCHAR;
 
+typedef uint8_t BYTE;
+
 typedef ULONGLONG *PULONGLONG;
 
 #define RTL_MAX_DRIVE_LETTERS 32
@@ -87,6 +92,86 @@ typedef struct _IMAGE_DOS_HEADER {
 	LONG e_lfanew;
 } IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
 
+typedef struct _IMAGE_FILE_HEADER {
+  WORD  Machine;
+  WORD  NumberOfSections;
+  DWORD TimeDateStamp;
+  DWORD PointerToSymbolTable;
+  DWORD NumberOfSymbols;
+  WORD  SizeOfOptionalHeader;
+  WORD  Characteristics;
+} IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;
+
+typedef struct _IMAGE_DATA_DIRECTORY {
+  DWORD VirtualAddress;
+  DWORD Size;
+} IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
+
+
+typedef struct _IMAGE_IMPORT_DESCRIPTOR {
+  union {
+    ULONG Characteristics;
+    ULONG OriginalFirstThunk;
+  } DUMMYUNIONNAME;
+  ULONG TimeDateStamp;
+  ULONG ForwarderChain;
+  ULONG Name;
+  ULONG FirstThunk;
+} IMAGE_IMPORT_DESCRIPTOR, *PIMAGE_IMPORT_DESCRIPTOR;
+
+ typedef struct _IMAGE_EXPORT_DIRECTORY {
+     DWORD   Characteristics;
+     DWORD   TimeDateStamp;
+     WORD    MajorVersion;
+     WORD    MinorVersion;
+     DWORD   Name;
+     DWORD   Base;
+     DWORD   NumberOfFunctions;
+     DWORD   NumberOfNames;
+     DWORD   AddressOfFunctions;     // RVA from base of image
+     DWORD   AddressOfNames;         // RVA from base of image
+     DWORD   AddressOfNameOrdinals;  // RVA from base of image
+ } IMAGE_EXPORT_DIRECTORY, *PIMAGE_EXPORT_DIRECTORY;
+
+
+typedef struct _IMAGE_OPTIONAL_HEADER64 {
+  WORD                 Magic;
+  BYTE                 MajorLinkerVersion;
+  BYTE                 MinorLinkerVersion;
+  DWORD                SizeOfCode;
+  DWORD                SizeOfInitializedData;
+  DWORD                SizeOfUninitializedData;
+  DWORD                AddressOfEntryPoint;
+  DWORD                BaseOfCode;
+  ULONGLONG            ImageBase;
+  DWORD                SectionAlignment;
+  DWORD                FileAlignment;
+  WORD                 MajorOperatingSystemVersion;
+  WORD                 MinorOperatingSystemVersion;
+  WORD                 MajorImageVersion;
+  WORD                 MinorImageVersion;
+  WORD                 MajorSubsystemVersion;
+  WORD                 MinorSubsystemVersion;
+  DWORD                Win32VersionValue;
+  DWORD                SizeOfImage;
+  DWORD                SizeOfHeaders;
+  DWORD                CheckSum;
+  WORD                 Subsystem;
+  WORD                 DllCharacteristics;
+  ULONGLONG            SizeOfStackReserve;
+  ULONGLONG            SizeOfStackCommit;
+  ULONGLONG            SizeOfHeapReserve;
+  ULONGLONG            SizeOfHeapCommit;
+  DWORD                LoaderFlags;
+  DWORD                NumberOfRvaAndSizes;
+  IMAGE_DATA_DIRECTORY DataDirectory[16];
+} IMAGE_OPTIONAL_HEADER64, *PIMAGE_OPTIONAL_HEADER64;
+
+typedef struct _IMAGE_NT_HEADERS64 {
+  DWORD                   Signature;
+  IMAGE_FILE_HEADER       FileHeader;
+  IMAGE_OPTIONAL_HEADER64 OptionalHeader;
+} IMAGE_NT_HEADERS64, *PIMAGE_NT_HEADERS64;
 
 typedef struct _UNICODE_STRING
 {
@@ -992,3 +1077,45 @@ typedef struct _PEB
     //
     ULONGLONG ExtendedFeatureDisableMask;
 } PEB, *PPEB;
+
+#define PAGE_NOACCESS 0x01              // Disables all access to the committed region of pages. An attempt to read from, write to, or execute the committed region results in an access violation.
+#define PAGE_READONLY 0x02              // Enables read-only access to the committed region of pages. An attempt to write or execute the committed region results in an access violation.
+#define PAGE_READWRITE 0x04             // Enables read-only or read/write access to the committed region of pages.
+#define PAGE_WRITECOPY 0x08             // Enables read-only or copy-on-write access to a mapped view of a file mapping object.
+#define PAGE_EXECUTE 0x10               // Enables execute access to the committed region of pages. An attempt to write to the committed region results in an access violation.
+#define PAGE_EXECUTE_READ 0x20          // Enables execute or read-only access to the committed region of pages. An attempt to write to the committed region results in an access violation.
+#define PAGE_EXECUTE_READWRITE 0x40     // Enables execute, read-only, or read/write access to the committed region of pages.
+#define PAGE_EXECUTE_WRITECOPY 0x80     // Enables execute, read-only, or copy-on-write access to a mapped view of a file mapping object.
+#define PAGE_GUARD 0x100                // Pages in the region become guard pages. Any attempt to access a guard page causes the system to raise a STATUS_GUARD_PAGE_VIOLATION exception.
+#define PAGE_NOCACHE 0x200              // Sets all pages to be non-cachable. Applications should not use this attribute. Using interlocked functions with memory that is mapped with SEC_NOCACHE can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
+#define PAGE_WRITECOMBINE 0x400         // Sets all pages to be write-combined. Applications should not use this attribute. Using interlocked functions with memory that is mapped with SEC_NOCACHE can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
+
+#define PAGE_REVERT_TO_FILE_MAP     0x80000000 // Pages in the region can revert modified copy-on-write pages to the original unmodified page when using the mapped view of a file mapping object.
+#define PAGE_ENCLAVE_THREAD_CONTROL 0x80000000 // Pages in the region contain a thread control structure (TCS) from the Intel Software Guard Extensions programming model.
+#define PAGE_TARGETS_NO_UPDATE      0x40000000 // Pages in the region will not update the CFG bitmap when the protection changes. The default behavior for VirtualProtect is to mark all locations as valid call targets for CFG.
+#define PAGE_TARGETS_INVALID        0x40000000 // Pages in the region are excluded from the CFG bitmap as valid targets. Any indirect call to locations in those pages will terminate the process using the __fastfail intrinsic.
+#define PAGE_ENCLAVE_UNVALIDATED    0x20000000 // Pages in the region are excluded from measurement with the EEXTEND instruction of the Intel Software Guard Extensions programming model.
+#define PAGE_ENCLAVE_NO_CHANGE      0x20000000
+#define PAGE_ENCLAVE_MASK           0x10000000
+#define PAGE_ENCLAVE_DECOMMIT       (PAGE_ENCLAVE_MASK | 0)
+#define PAGE_ENCLAVE_SS_FIRST       (PAGE_ENCLAVE_MASK | 1)
+#define PAGE_ENCLAVE_SS_REST        (PAGE_ENCLAVE_MASK | 2)
+
+#define MEM_COMMIT 0x00001000
+#define MEM_RESERVE 0x00002000
+#define MEM_DECOMMIT 0x00004000
+#define MEM_RELEASE 0x00008000
+#define MEM_FREE 0x00010000
+#define MEM_PRIVATE 0x00020000
+#define MEM_MAPPED 0x00040000
+#define MEM_RESET 0x00080000
+#define MEM_TOP_DOWN 0x00100000
+#define MEM_WRITE_WATCH 0x00200000
+#define MEM_PHYSICAL 0x00400000
+#define MEM_ROTATE 0x00800000
+#define MEM_DIFFERENT_IMAGE_BASE_OK 0x00800000
+#define MEM_RESET_UNDO 0x01000000
+#define MEM_LARGE_PAGES 0x20000000
+#define MEM_DOS_LIM 0x40000000
+#define MEM_4MB_PAGES 0x80000000
+#define MEM_64K_PAGES (MEM_LARGE_PAGES | MEM_PHYSICAL)

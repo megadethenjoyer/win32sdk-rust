@@ -7,6 +7,8 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 use std::{arch::asm, mem::offset_of};
 
+pub mod pe;
+
 pub fn get_peb() -> *const PEB {
     unsafe {
         let mut peb: usize;
