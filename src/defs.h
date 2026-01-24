@@ -1119,3 +1119,102 @@ typedef struct _PEB
 #define MEM_DOS_LIM 0x40000000
 #define MEM_4MB_PAGES 0x80000000
 #define MEM_64K_PAGES (MEM_LARGE_PAGES | MEM_PHYSICAL)
+
+#define TOKEN_ASSIGN_PRIMARY    (0x0001)
+#define TOKEN_DUPLICATE         (0x0002)
+#define TOKEN_IMPERSONATE       (0x0004)
+#define TOKEN_QUERY             (0x0008)
+#define TOKEN_QUERY_SOURCE      (0x0010)
+#define TOKEN_ADJUST_PRIVILEGES (0x0020)
+#define TOKEN_ADJUST_GROUPS     (0x0040)
+#define TOKEN_ADJUST_DEFAULT    (0x0080)
+#define TOKEN_ADJUST_SESSIONID  (0x0100)
+
+typedef struct _SID_IDENTIFIER_AUTHORITY {
+  UCHAR Value[6];
+} SID_IDENTIFIER_AUTHORITY, *PSID_IDENTIFIER_AUTHORITY;
+
+typedef struct _SID {
+  UCHAR                    Revision;
+  UCHAR                    SubAuthorityCount;
+  SID_IDENTIFIER_AUTHORITY IdentifierAuthority;
+  ULONG                    SubAuthority[1];
+} SID, *PISID;
+
+typedef struct _SID_AND_ATTRIBUTES {
+  PISID Sid;
+  ULONG Attributes;
+} SID_AND_ATTRIBUTES, *PSID_AND_ATTRIBUTES;
+
+/**
+ * The TOKEN_MANDATORY_POLICY structure specifies the mandatory integrity policy for a token.
+ * \sa https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-token_mandatory_policy
+ */
+typedef struct _TOKEN_MANDATORY_LABEL
+{
+    SID_AND_ATTRIBUTES Label;
+} TOKEN_MANDATORY_LABEL, *PTOKEN_MANDATORY_LABEL;
+
+/**
+ * The TOKEN_INFORMATION_CLASS enumeration contains values that specify the type of information
+ * being assigned to or retrieved from an access token.
+ *
+ * \sa https://learn.microsoft.com/en-us/windows/win32/api/winnt/ne-winnt-token_information_class
+ */
+typedef enum _TOKEN_INFORMATION_CLASS
+{
+    TokenUser = 1,                        // q: TOKEN_USER, SE_TOKEN_USER
+    TokenGroups,                          // q: TOKEN_GROUPS
+    TokenPrivileges,                      // q: TOKEN_PRIVILEGES
+    TokenOwner,                           // qs: TOKEN_OWNER
+    TokenPrimaryGroup,                    // qs: TOKEN_PRIMARY_GROUP
+    TokenDefaultDacl,                     // qs: TOKEN_DEFAULT_DACL
+    TokenSource,                          // q: TOKEN_SOURCE
+    TokenType,                            // q: TOKEN_TYPE
+    TokenImpersonationLevel,              // q: SECURITY_IMPERSONATION_LEVEL
+    TokenStatistics,                      // q: TOKEN_STATISTICS // 10
+    TokenRestrictedSids,                  // q: TOKEN_GROUPS
+    TokenSessionId,                       // qs: ULONG (requires SeTcbPrivilege)
+    TokenGroupsAndPrivileges,             // q: TOKEN_GROUPS_AND_PRIVILEGES
+    TokenSessionReference,                // s: ULONG (requires SeTcbPrivilege)
+    TokenSandBoxInert,                    // q: ULONG
+    TokenAuditPolicy,                     // qs: TOKEN_AUDIT_POLICY (requires SeSecurityPrivilege/SeTcbPrivilege)
+    TokenOrigin,                          // qs: TOKEN_ORIGIN (requires SeTcbPrivilege)
+    TokenElevationType,                   // q: TOKEN_ELEVATION_TYPE
+    TokenLinkedToken,                     // qs: TOKEN_LINKED_TOKEN (requires SeCreateTokenPrivilege)
+    TokenElevation,                       // q: TOKEN_ELEVATION // 20
+    TokenHasRestrictions,                 // q: ULONG
+    TokenAccessInformation,               // q: TOKEN_ACCESS_INFORMATION
+    TokenVirtualizationAllowed,           // qs: ULONG (requires SeCreateTokenPrivilege)
+    TokenVirtualizationEnabled,           // qs: ULONG
+    TokenIntegrityLevel,                  // qs: TOKEN_MANDATORY_LABEL
+    TokenUIAccess,                        // qs: ULONG (requires SeTcbPrivilege)
+    TokenMandatoryPolicy,                 // qs: TOKEN_MANDATORY_POLICY (requires SeTcbPrivilege)
+    TokenLogonSid,                        // q: TOKEN_GROUPS
+    TokenIsAppContainer,                  // q: ULONG // since WIN8
+    TokenCapabilities,                    // q: TOKEN_GROUPS // 30
+    TokenAppContainerSid,                 // q: TOKEN_APPCONTAINER_INFORMATION
+    TokenAppContainerNumber,              // q: ULONG
+    TokenUserClaimAttributes,             // q: CLAIM_SECURITY_ATTRIBUTES_INFORMATION
+    TokenDeviceClaimAttributes,           // q: CLAIM_SECURITY_ATTRIBUTES_INFORMATION
+    TokenRestrictedUserClaimAttributes,   // q: CLAIM_SECURITY_ATTRIBUTES_INFORMATION
+    TokenRestrictedDeviceClaimAttributes, // q: CLAIM_SECURITY_ATTRIBUTES_INFORMATION
+    TokenDeviceGroups,                    // q: TOKEN_GROUPS
+    TokenRestrictedDeviceGroups,          // q: TOKEN_GROUPS
+    TokenSecurityAttributes,              // qs: TOKEN_SECURITY_ATTRIBUTES_[AND_OPERATION_]INFORMATION (requires SeTcbPrivilege)
+    TokenIsRestricted,                    // q: ULONG // 40
+    TokenProcessTrustLevel,               // q: TOKEN_PROCESS_TRUST_LEVEL // since WINBLUE
+    TokenPrivateNameSpace,                // qs: ULONG (requires SeTcbPrivilege) // since THRESHOLD
+    TokenSingletonAttributes,             // q: TOKEN_SECURITY_ATTRIBUTES_INFORMATION // since REDSTONE
+    TokenBnoIsolation,                    // q: TOKEN_BNO_ISOLATION_INFORMATION // since REDSTONE2
+    TokenChildProcessFlags,               // s: ULONG  (requires SeTcbPrivilege) // since REDSTONE3
+    TokenIsLessPrivilegedAppContainer,    // q: ULONG // since REDSTONE5
+    TokenIsSandboxed,                     // q: ULONG // since 19H1
+    TokenIsAppSilo,                       // q: ULONG // since WIN11 22H2 // previously TokenOriginatingProcessTrustLevel // q: TOKEN_PROCESS_TRUST_LEVEL
+    TokenLoggingInformation,              // q: TOKEN_LOGGING_INFORMATION // since 24H2
+    TokenLearningMode,                    // q: // since 25H2
+    MaxTokenInfoClass
+} TOKEN_INFORMATION_CLASS, *PTOKEN_INFORMATION_CLASS;
+
+#define STATUS_BUFFER_TOO_SMALL			0xC0000023L
+#define STATUS_INFO_LENGTH_MISMATCH     0xC0000004L

@@ -11,9 +11,12 @@ use crate::windows::vm::{NtAllocateVirtualMemory, NtFreeVirtualMemory};
 
 pub mod pe;
 pub mod vm;
+pub mod token;
 
 static mut nt_alloc_vm: Option<self::vm::NtAllocateVirtualMemory> = None;
 static mut nt_free_vm: Option<self::vm::NtFreeVirtualMemory> = None;
+static mut nt_open_token: Option<self::token::NtOpenProcessToken> = None;
+static mut nt_query_info_token: Option<self::token::NtQueryInformationToken> = None;
 
 pub const H_CURR_PROC: usize = 0xFFFFFFFFFFFFFFFFusize;
 pub const STATUS_SUCCESS: u32 = 0u32;
@@ -99,11 +102,17 @@ pub fn find_module(target_name: &String) -> Option<Module> {
     return None;
 }
 
+fn is_buf_too_small(status: u32) -> bool {
+    return status == STATUS_INFO_LENGTH_MISMATCH || status == STATUS_BUFFER_TOO_SMALL;
+}
+
 pub fn init() {
     let ntdll = find_module(&String::from("ntdll.dll")).unwrap();
     unsafe {
         nt_alloc_vm = Some(std::mem::transmute(pe::find_export(ntdll.base, String::from("NtAllocateVirtualMemory")).unwrap()));
         nt_free_vm = Some(std::mem::transmute(pe::find_export(ntdll.base, String::from("NtFreeVirtualMemory")).unwrap()));
+        nt_open_token = Some(std::mem::transmute(pe::find_export(ntdll.base, String::from("NtOpenProcessToken")).unwrap()));
+        nt_query_info_token = Some(std::mem::transmute(pe::find_export(ntdll.base, String::from("NtQueryInformationToken")).unwrap()));
     }
 
 }
